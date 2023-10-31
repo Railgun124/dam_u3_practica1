@@ -15,7 +15,7 @@ class _App01State extends State<App01> {
       appBar: AppBar(title: Text("Practica 1"),),
       body: dinamico(),
       bottomNavigationBar: BottomNavigationBar(items: [
-        BottomNavigationBarItem(icon: Icon(Icons.add),label: "Inicio"),
+        BottomNavigationBarItem(icon: Icon(Icons.list),label: "Inicio"),
         BottomNavigationBarItem(icon: Icon(Icons.add),label: "Materias"),
         BottomNavigationBarItem(icon: Icon(Icons.add),label: "Tarea"),
       ],
@@ -40,8 +40,8 @@ class _App01State extends State<App01> {
               appBar: AppBar(
                 title: Text("Materias"),
                 bottom: TabBar(tabs: [
-                  Icon(Icons.add),
-                  Icon(Icons.add),
+                  Icon(Icons.list),
+                  Icon(Icons.edit),
                   Icon(Icons.add)
                 ]),
               ),
@@ -73,8 +73,8 @@ class _App01State extends State<App01> {
               appBar: AppBar(
                 title: Text("Tareas"),
                 bottom: TabBar(tabs: [
-                  Icon(Icons.add),
-                  Icon(Icons.add),
+                  Icon(Icons.list),
+                  Icon(Icons.edit),
                   Icon(Icons.add)
                 ]),
               ),
