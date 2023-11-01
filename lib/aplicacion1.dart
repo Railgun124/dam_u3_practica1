@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'BaseDatos.dart';
 import 'Materia.dart';
 import 'Tarea.dart';
@@ -27,13 +26,7 @@ class _App01State extends State<App01> {
   final fechaEntregaInsert = TextEditingController();
   String? materiaSeleccionadaInsert;
 
-  List<Tarea> Tareas = [
-    Tarea(
-        IDTarea: 1,
-        IDMateria: "1",
-        F_Entrega: "20/09/23",
-        Descripcion: "Tarea 1"),
-  ];
+  List<Tarea> Tareas = [];
 
   List<Materia> Materias = [
     Materia(
@@ -270,17 +263,19 @@ class _App01State extends State<App01> {
         ),
         SizedBox(height: 30),
         ElevatedButton(onPressed: (){
-          DB.insertar(
+          DB.insertarTarea(
             Tarea(
                 IDTarea: int.parse(numTareaInsert.text),
                 IDMateria: materiaIdInsert.text,
                 F_Entrega: fechaEntregaInsert.text,
                 Descripcion: descripcionInsert.text)
-          );
+          ).then((value) => actualizarListaTareas());
           numTareaInsert.clear();
           fechaEntregaInsert.clear();
           materiaIdInsert.clear();
           descripcionInsert.clear();
+          materiaSeleccionadaInsert = null;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Añadido Exitosamente!")));
         }, child: Text("Agregar"))
       ],
     );
@@ -336,11 +331,15 @@ class _App01State extends State<App01> {
         ),
         SizedBox(height: 30),
         ElevatedButton(onPressed: (){
-
+          DB.actualizarTarea(
+            Tarea(IDTarea: int.parse(numTarea.text), IDMateria: materiaId.text, F_Entrega: fechaEntrega.text, Descripcion: descripcion.text)
+          ).then((value) => actualizarListaTareas());
           numTarea.clear();
           fechaEntrega.clear();
           materiaId.clear();
           descripcion.clear();
+          materiaSeleccionada=null;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Editado Exitosamente!")));
 
         }, child: Text("Editar"))
       ],
