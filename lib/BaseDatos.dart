@@ -14,20 +14,29 @@ class DB{
               "Nombre text,"
               "Semestre text,"
               "Docente text,"
-              ")"
+              ");"
               "Create table Tarea("
               "IDTarea text primary key,"
               "IDMateria text,"
               "F_entrega text,"
-              "Descripcion,"
-              "CONSTRAINT FK_TAREA_MATERIA FOREIGN KEY (IDMateria)"
-              ")"
+              "Descripcion text,"
+              "CONSTRAINT FK_TAREA_MATERIA FOREIGN KEY (IDMateria) REFERENCES Materia(IDMateria)"
+              ");"
         );
       },version: 1);
   }
   static Future<int> insertar(Tarea t) async{
     Database db = await _abrirBD();
     return db.insert("Tarea", t.toJSON(),conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+  static Future<int> actualizar(Tarea t) async{
+    Database db = await _abrirBD();
+    return db.update("Tarea", t.toJSON(),where: "IDTarea = ?",whereArgs: [t.IDTarea]);
+  }
+
+  static Future<int> eliminar(int tarea) async{
+    Database db = await _abrirBD();
+    return db.delete("Tarea",where: "IDTarea = ?",whereArgs: [tarea]);
   }
   static Future<List<Tarea>> mostrarTareas() async{
     Database db = await _abrirBD();

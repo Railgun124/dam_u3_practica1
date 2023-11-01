@@ -13,11 +13,20 @@ class App01 extends StatefulWidget {
 
 class _App01State extends State<App01> {
   int _index = 0;
+  //Editar
   final numTarea =  TextEditingController();
   final descripcion = TextEditingController();
   final materiaId = TextEditingController();
   final fechaEntrega = TextEditingController();
   String? materiaSeleccionada;
+
+  //Capturar
+  final numTareaInsert =  TextEditingController();
+  final descripcionInsert = TextEditingController();
+  final materiaIdInsert = TextEditingController();
+  final fechaEntregaInsert = TextEditingController();
+  String? materiaSeleccionadaInsert;
+
   List<Tarea> Tareas = [
     Tarea(
         IDTarea: 1,
@@ -49,7 +58,21 @@ class _App01State extends State<App01> {
       setState(() {
         f_entrega = picked;
         fechaEntrega.text = "${f_entrega.toLocal()}".split(' ')[0];
-        print(fechaEntrega.text);
+      });
+    }
+  }
+
+  void _selectDateInsert(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: f_entrega,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != f_entrega) {
+      setState(() {
+        f_entrega = picked;
+        fechaEntregaInsert.text = "${f_entrega.toLocal()}".split(' ')[0];
       });
     }
   }
@@ -179,8 +202,18 @@ class _App01State extends State<App01> {
               setState(() {
                 TareaGlb = Tareas[indice];
               });
+              var materia = Materias.firstWhere(
+                      (materia) => materia.IDMateria == TareaGlb.IDMateria,
+                  orElse: () => Materia(
+                      IDMateria: "",
+                      Nombre: "",
+                      Semestre: "",
+                      Docente: ""));
+              numTarea.text = "${TareaGlb.IDTarea}";
               descripcion.text = TareaGlb.Descripcion;
-              //f_entrega = TareaGlb.F_Entrega;
+              fechaEntrega.text = TareaGlb.F_Entrega;
+              materiaId.text = TareaGlb.IDMateria;
+              materiaSeleccionada = "${materia.Nombre}";
               DefaultTabController.of(context).animateTo(1);
             },
           );
@@ -191,8 +224,74 @@ class _App01State extends State<App01> {
     return ListView(
       padding: EdgeInsets.all(40),
       children: [
-        TextField(controller: numTarea,
+        TextField(controller: numTareaInsert,
         decoration: InputDecoration(labelText: "Número de tarea"),keyboardType: TextInputType.number),
+        TextFormField(
+          readOnly: true,
+          controller: fechaEntregaInsert,
+          onTap: () {
+            _selectDateInsert(context);
+          },
+          decoration: InputDecoration(
+            labelText: 'Fecha',
+            suffixIcon: IconButton(
+              icon: Icon(Icons.calendar_today),
+              onPressed: () {
+                _selectDateInsert(context);
+              },
+            ),
+          ),
+        ),
+        Text("${materiaIdInsert.text}"),
+        DropdownButton<String>(
+          hint: Text("Seleccionar Materia"),
+          value: materiaSeleccionadaInsert, // Valor actualmente seleccionado
+          onChanged: (String? value) {
+            setState(() {
+              materiaSeleccionadaInsert = value; // Actualiza la materia seleccionada
+            });
+          },
+          items: Materias.map((materia) {
+            return DropdownMenuItem<String>(
+              value:
+                  materia.Nombre, // Puedes usar el ID de la materia como valor
+              child: Text(materia.Nombre),
+              onTap: () {
+                setState(() {
+                  materiaIdInsert.text = materia.IDMateria;
+                });
+              },
+            );
+          }).toList(),
+        ),
+        TextField(
+          controller: descripcionInsert,
+          decoration: InputDecoration(labelText: "Descripcion"),
+        ),
+        SizedBox(height: 30),
+        ElevatedButton(onPressed: (){
+          DB.insertar(
+            Tarea(
+                IDTarea: int.parse(numTareaInsert.text),
+                IDMateria: materiaIdInsert.text,
+                F_Entrega: fechaEntregaInsert.text,
+                Descripcion: descripcionInsert.text)
+          );
+          numTareaInsert.clear();
+          fechaEntregaInsert.clear();
+          materiaIdInsert.clear();
+          descripcionInsert.clear();
+        }, child: Text("Agregar"))
+      ],
+    );
+  }
+
+  Widget editarTareas() {
+    return ListView(
+      padding: EdgeInsets.all(40),
+      children: [
+        TextField(controller: numTarea,
+            decoration: InputDecoration(labelText: "Número de tarea"),keyboardType: TextInputType.number),
         TextFormField(
           readOnly: true,
           controller: fechaEntrega,
@@ -221,7 +320,7 @@ class _App01State extends State<App01> {
           items: Materias.map((materia) {
             return DropdownMenuItem<String>(
               value:
-                  materia.Nombre, // Puedes usar el ID de la materia como valor
+              materia.Nombre, // Puedes usar el ID de la materia como valor
               child: Text(materia.Nombre),
               onTap: () {
                 setState(() {
@@ -237,27 +336,13 @@ class _App01State extends State<App01> {
         ),
         SizedBox(height: 30),
         ElevatedButton(onPressed: (){
-          DB.insertar(
-            Tarea(
-                IDTarea: int.parse(numTarea.text),
-                IDMateria: materiaId.text,
-                F_Entrega: fechaEntrega.text,
-                Descripcion: descripcion.text)
-          );
-        }, child: Text("Agregar"))
-      ],
-    );
-  }
 
-  Widget editarTareas() {
-    return ListView(
-      padding: EdgeInsets.all(40),
-      children: [
-        Text("Editar Tarea ${TareaGlb.IDTarea}"),
-        TextField(
-          controller: descripcion,
-          decoration: InputDecoration(labelText: "Descripcion"),
-        ),
+          numTarea.clear();
+          fechaEntrega.clear();
+          materiaId.clear();
+          descripcion.clear();
+
+        }, child: Text("Editar"))
       ],
     );
   }
