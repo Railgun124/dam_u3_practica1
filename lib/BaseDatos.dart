@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
+import 'Materia.dart';
 import 'Tarea.dart';
 
 class DB{
@@ -53,5 +54,35 @@ class DB{
           F_Entrega: resultado[index]['F_Entrega'],
           Descripcion: resultado[index]['Descripcion']);
     });
+  }
+  static Future<int> insertarMateria(Materia m) async{
+    Database db = await _abrirBD();
+    return db.insert("Materia", m.toJSON(),conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<List<Materia>> mostrarMateria() async{
+    Database db = await _abrirBD();
+
+    List<Map<String,dynamic>> resultado = await db.query("Materia");
+
+    return List.generate(resultado.length, (index){
+      return Materia(
+          IDMateria: resultado[index]['IDMateria'],
+          Nombre: resultado[index]['Nombre'],
+          Semestre: resultado[index]['Semestre'],
+          Docente: resultado[index]['Docente']);
+    });
+  }
+
+  static Future<int> actualizarMateria(Materia m) async{
+    Database db = await _abrirBD();
+
+    return db.update("Materia", m.toJSON(),where: "IDMateria=?", whereArgs: [m.IDMateria]);
+  }
+
+  static Future<int> eliminarMateria(String IdMateria) async{
+    Database db = await _abrirBD();
+
+    return db.delete("Materia",where: "IDMateria=?", whereArgs: [IdMateria]);
   }
 }

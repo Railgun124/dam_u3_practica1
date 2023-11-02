@@ -9,4 +9,14 @@ class Materia{
     required this.Semestre,
     required this.Docente
   });
+
+  Map<String, dynamic> toJSON(){
+    return{
+      'IDMateria': IDMateria,
+      'Nombre': Nombre,
+      'Semestre': Semestre,
+      'Docente': Docente,
+    };
+  }
+
 }

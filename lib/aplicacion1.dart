@@ -11,29 +11,34 @@ class App01 extends StatefulWidget {
 }
 
 class _App01State extends State<App01> {
+  List<Materia> Materias=[];
+  List<Tarea> Tareas = [];
   int _index = 0;
-  //Editar
+  //Editar Tareas
   final numTarea =  TextEditingController();
   final descripcion = TextEditingController();
   final materiaId = TextEditingController();
   final fechaEntrega = TextEditingController();
   String? materiaSeleccionada;
 
-  //Capturar
+  //Capturar Tareas
   final numTareaInsert =  TextEditingController();
   final descripcionInsert = TextEditingController();
   final materiaIdInsert = TextEditingController();
   final fechaEntregaInsert = TextEditingController();
   String? materiaSeleccionadaInsert;
 
-  List<Tarea> Tareas = [];
+  //Editar Materias
+  final idM = TextEditingController();
+  final nombreM = TextEditingController();
+  final semestre = TextEditingController();
+  final docente = TextEditingController();
 
-  List<Materia> Materias = [
-    Materia(
-        IDMateria: "1", Nombre: "NoSQL", Semestre: "8", Docente: "Docente1"),
-    Materia(
-        IDMateria: "2", Nombre: "Moviles", Semestre: "9", Docente: "Docente2")
-  ];
+  //Capturar Materias
+  final idMInsert = TextEditingController();
+  final nombreMInsert = TextEditingController();
+  final semestreInsert = TextEditingController();
+  final docenteInsert = TextEditingController();
 
   Tarea TareaGlb =
       Tarea(IDTarea: 0, IDMateria: "", F_Entrega: "", Descripcion: "");
@@ -69,7 +74,13 @@ class _App01State extends State<App01> {
       });
     }
   }
-
+  
+  void actualizarMaterias() async{
+    List<Materia> temp = await DB.mostrarMateria();
+    setState(() {
+      Materias=temp;
+    });
+  }
   void actualizarListaTareas() async {
     List<Tarea> temp = await DB.mostrarTareas();
     setState(() {
@@ -80,8 +91,10 @@ class _App01State extends State<App01> {
   @override
   void initState() {
     actualizarListaTareas();
+    actualizarMaterias();
   }
 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,9 +122,7 @@ class _App01State extends State<App01> {
     switch (_index) {
       case 0:
         {
-          return Center(
-            child: Text("Incio"),
-          );
+          return mostrar();
         }
       case 1:
         {
@@ -127,20 +138,124 @@ class _App01State extends State<App01> {
                   ]),
                 ),
                 body: TabBarView(children: [
-                  //MOSTRAR TODOS
-                  ListView(
-                    children: [Text("Mostrar todos")],
-                  ),
-                  //EDITAR
-                  ListView(
-                    children: [Text("Editar")],
-                  ),
-                  //AGREGAR
-                  ListView(
-                    children: [Text("Agregar")],
-                  ),
-                ]),
-              ));
+                //MOSTRAR TODOS
+                ListView.builder(
+                  itemCount: Materias.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text("${Materias[index].Nombre}"),
+                      subtitle: Text("${Materias[index].Docente}\n ${Materias[index].Semestre}"),
+                      leading: CircleAvatar(
+                        child: Text("${index + 1}"),
+                      ),
+                      trailing: IconButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (builder) {
+                              return AlertDialog(
+                                title: Text("Seguro que quieres eliminar ${Materias[index].Nombre}"),
+                                content: Text(""),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      DB.eliminarMateria(Materias[index].IDMateria).then((value) {
+                                        setState(() {
+                                          //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Se eliminó la materia ${materias[index].Nombre}")));
+                                        });
+                                        actualizarMaterias();
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text("Aceptar"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text("Cancelar"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        icon: Icon(Icons.delete),
+                      ),
+                      onTap: () {
+                        idM.text = Materias[index].IDMateria;
+                        nombreM.text = Materias[index].Nombre;
+                        semestre.text = Materias[index].Semestre;
+                        docente.text = Materias[index].Docente;
+                        DefaultTabController.of(context).animateTo(1);
+                      },
+                    );
+                  },
+                ),
+                //EDITAR
+                ListView(
+                  padding: EdgeInsets.all(40),
+                  children: [
+                    TextField(enabled:false,decoration: InputDecoration(
+                      labelText: "ID materia:",
+                    ),controller: idM,),
+                    TextField(decoration: InputDecoration(
+                      labelText: "Nombre materia:",
+                    ),controller: nombreM,),
+                    TextField(decoration: InputDecoration(
+                      labelText: "Semestre:",
+                    ),controller: semestre,),
+                    TextField(decoration: InputDecoration(
+                      labelText: "Nombre docente:",
+                    ),controller: docente,),
+                    ElevatedButton(onPressed: (){
+                      var temporal = Materia(IDMateria: idM.text, Nombre: nombreM.text, Semestre: semestre.text, Docente: docente.text);
+                      DB.actualizarMateria(temporal).then((value){
+                        setState(() {
+                          //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Materia Guardada")));
+                        });
+                      });
+                      idM.text = "";
+                      nombreM.text = "";
+                      semestre.text = "";
+                      docente.text = "";
+                      actualizarMaterias();
+                    }, child: Text("Guardar"))
+                  ],
+                ),
+                //AGREGAR
+                ListView(
+                  padding: EdgeInsets.all(40),
+                  children: [
+                    TextField(decoration: InputDecoration(
+                      labelText: "ID materia:",
+                    ),controller: idMInsert,),
+                    TextField(decoration: InputDecoration(
+                      labelText: "Nombre materia:",
+                    ),controller: nombreMInsert,),
+                    TextField(decoration: InputDecoration(
+                      labelText: "Semestre:",
+                    ),controller: semestreInsert,),
+                    TextField(decoration: InputDecoration(
+                      labelText: "Nombre docente:",
+                    ),controller: docenteInsert,),
+                    ElevatedButton(onPressed: (){
+                      var temporal = Materia(IDMateria: idMInsert.text, Nombre: nombreMInsert.text, Semestre: semestreInsert.text, Docente: docenteInsert.text);
+                      DB.insertarMateria(temporal).then((value){
+                        setState(() {
+                          //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Materia Guardada")));
+                        });
+                      });
+                      idMInsert.text = "";
+                      nombreMInsert.text = "";
+                      semestreInsert.text = "";
+                      docenteInsert.text = "";
+                      actualizarMaterias();
+                    }, child: Text("Guardar"))
+                  ],
+                ),
+              ]),
+            ));
         }
       case 2:
         {
@@ -182,15 +297,34 @@ class _App01State extends State<App01> {
                   IDMateria: "",
                   Nombre: "",
                   Semestre: "",
-                  Docente: "")); //Buscar el nombre de la materia por IDMateria
+                  Docente: ""));
           return ListTile(
             leading: CircleAvatar(
               child: Text("${Tareas[indice].IDTarea}"),
             ),
             title: Text(
-                "${Tareas[indice].Descripcion} - Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}"),
-            subtitle: Text("${Tareas[indice].F_Entrega}"),
-            trailing: IconButton(onPressed: () {}, icon: Icon(Icons.delete)),
+                "${Tareas[indice].Descripcion}"),
+            subtitle: Text("Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}\nPara el: ${Tareas[indice].F_Entrega}"),
+            trailing: IconButton(onPressed: () {
+              showDialog(context: context, builder: (builder){
+                return AlertDialog(
+                  title: Text("Eiminar"),
+                  content: Text("¿Seguro que quieres borrar la tarea ´${Tareas[indice].Descripcion}?´"),
+                  actions: [
+                    OutlinedButton(onPressed: (){
+                      DB.eliminarTarea(Tareas[indice].IDTarea).then((value){
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Se ha borrado corretamente!")));
+                        actualizarListaTareas();
+                      });
+                      Navigator.pop(context);
+                    }, child: Text("Eliminar")),
+                    OutlinedButton(onPressed: (){
+                      Navigator.pop(context);
+                    }, child: Text("Cancelar"))
+                  ],
+                );
+              });
+            }, icon: Icon(Icons.delete)),
             onTap: () {
               setState(() {
                 TareaGlb = Tareas[indice];
@@ -235,7 +369,6 @@ class _App01State extends State<App01> {
             ),
           ),
         ),
-        Text("${materiaIdInsert.text}"),
         DropdownButton<String>(
           hint: Text("Seleccionar Materia"),
           value: materiaSeleccionadaInsert, // Valor actualmente seleccionado
@@ -286,6 +419,7 @@ class _App01State extends State<App01> {
       padding: EdgeInsets.all(40),
       children: [
         TextField(controller: numTarea,
+            enabled: false,
             decoration: InputDecoration(labelText: "Número de tarea"),keyboardType: TextInputType.number),
         TextFormField(
           readOnly: true,
@@ -303,19 +437,18 @@ class _App01State extends State<App01> {
             ),
           ),
         ),
-        Text("${materiaId.text}"),
         DropdownButton<String>(
           hint: Text("Seleccionar Materia"),
-          value: materiaSeleccionada, // Valor actualmente seleccionado
+          value: materiaSeleccionada,
           onChanged: (String? value) {
             setState(() {
-              materiaSeleccionada = value; // Actualiza la materia seleccionada
+              materiaSeleccionada = value;
             });
           },
           items: Materias.map((materia) {
             return DropdownMenuItem<String>(
               value:
-              materia.Nombre, // Puedes usar el ID de la materia como valor
+              materia.Nombre,
               child: Text(materia.Nombre),
               onTap: () {
                 setState(() {
@@ -344,5 +477,65 @@ class _App01State extends State<App01> {
         }, child: Text("Editar"))
       ],
     );
+  }
+
+  Widget mostrar(){
+    return ListView.builder(
+        itemCount: Tareas.length,
+        itemBuilder: (context, indice) {
+          var materia = Materias.firstWhere(
+                  (materia) => materia.IDMateria == Tareas[indice].IDMateria,
+              orElse: () => Materia(
+                  IDMateria: "",
+                  Nombre: "",
+                  Semestre: "",
+                  Docente: ""));
+          return ListTile(
+            leading: CircleAvatar(
+              child: Text("${Tareas[indice].IDTarea}"),
+            ),
+            title: Text(
+                "${Tareas[indice].Descripcion}"),
+            subtitle: Text("Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}\nPara el: ${Tareas[indice].F_Entrega}"),
+            trailing: IconButton(onPressed: () {
+              showDialog(context: context, builder: (builder){
+                return AlertDialog(
+                  title: Text("Eiminar"),
+                  content: Text("¿Seguro que quieres borrar la tarea ´${Tareas[indice].Descripcion}?´"),
+                  actions: [
+                    OutlinedButton(onPressed: (){
+                      DB.eliminarTarea(Tareas[indice].IDTarea).then((value){
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Se ha borrado corretamente!")));
+                        actualizarListaTareas();
+                      });
+                      Navigator.pop(context);
+                    }, child: Text("Eliminar")),
+                    OutlinedButton(onPressed: (){
+                      Navigator.pop(context);
+                    }, child: Text("Cancelar"))
+                  ],
+                );
+              });
+            }, icon: Icon(Icons.delete)),
+            onTap: () {
+              setState(() {
+                TareaGlb = Tareas[indice];
+                _index = 2;
+              });
+              var materia = Materias.firstWhere(
+                      (materia) => materia.IDMateria == TareaGlb.IDMateria,
+                  orElse: () => Materia(
+                      IDMateria: "",
+                      Nombre: "",
+                      Semestre: "",
+                      Docente: ""));
+              numTarea.text = "${TareaGlb.IDTarea}";
+              descripcion.text = TareaGlb.Descripcion;
+              fechaEntrega.text = TareaGlb.F_Entrega;
+              materiaId.text = TareaGlb.IDMateria;
+              materiaSeleccionada = "${materia.Nombre}";
+            },
+          );
+        });
   }
 }
