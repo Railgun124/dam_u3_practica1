@@ -489,9 +489,8 @@ class _App01State extends State<App01> {
     return ListView.builder(
       itemCount: Tareas.length,
       itemBuilder: (context, indice) {
-        var tarea = Tareas[indice];
         var materia = Materias.firstWhere(
-              (materia) => materia.IDMateria == tarea.IDMateria,
+              (materia) => materia.IDMateria == Tareas[indice].IDMateria,
           orElse: () => Materia(
             IDMateria: "",
             Nombre: "",
@@ -500,7 +499,7 @@ class _App01State extends State<App01> {
           ),
         );
 
-        bool esTareaPasada = DateTime.parse(tarea.F_Entrega).isBefore(fechaActual);
+        bool esTareaPasada = DateTime.parse(Tareas[indice].F_Entrega).isBefore(fechaActual);
 
         Color? backgroundColor = esTareaPasada ? Colors.redAccent : null;
 
@@ -508,10 +507,10 @@ class _App01State extends State<App01> {
           child: ListTile(
             tileColor: backgroundColor,
             leading: CircleAvatar(
-              child: Text("${tarea.IDTarea}"),
+              child: Text("${Tareas[indice].IDTarea}"),
             ),
-            title: Text("${tarea.Descripcion}"),
-            subtitle: Text("Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}\nPara el: ${tarea.F_Entrega}"),
+            title: Text("${Tareas[indice].Descripcion}"),
+            subtitle: Text("Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}\nPara el: ${Tareas[indice].F_Entrega}"),
             trailing: IconButton(
               onPressed: () {
                 showDialog(
@@ -519,11 +518,11 @@ class _App01State extends State<App01> {
                   builder: (builder) {
                     return AlertDialog(
                       title: Text("Eliminar"),
-                      content: Text("¿Seguro que quieres borrar la tarea ´${tarea.Descripcion}?´"),
+                      content: Text("¿Seguro que quieres borrar la tarea ´${Tareas[indice].Descripcion}?´"),
                       actions: [
                         OutlinedButton(
                           onPressed: () {
-                            DB.eliminarTarea(tarea.IDTarea).then((value) {
+                            DB.eliminarTarea(Tareas[indice].IDTarea).then((value) {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Se ha borrado corretamente!")));
                               actualizarListaTareas();
                             });
@@ -546,13 +545,21 @@ class _App01State extends State<App01> {
             ),
             onTap: () {
               setState(() {
-                TareaGlb = tarea;
+                TareaGlb = Tareas[indice];
                 _index = 2;
               });
-              numTarea.text = "${tarea.IDTarea}";
-              descripcion.text = tarea.Descripcion;
-              fechaEntrega.text = tarea.F_Entrega;
-              materiaId.text = tarea.IDMateria;
+              var materia = Materias.firstWhere(
+                (materia) => materia.IDMateria == TareaGlb.IDMateria,
+                orElse: () => Materia(
+                IDMateria: "",
+                Nombre: "",
+                Semestre: "",
+                Docente: "")
+              );
+              numTarea.text = "${TareaGlb.IDTarea}";
+              descripcion.text = TareaGlb.Descripcion;
+              fechaEntrega.text = TareaGlb.F_Entrega;
+              materiaId.text = TareaGlb.IDMateria;
               materiaSeleccionada = "${materia.Nombre}";
             },
           ),
