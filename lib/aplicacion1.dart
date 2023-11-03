@@ -100,6 +100,7 @@ class _App01State extends State<App01> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Practica 1"),
+        backgroundColor: Colors.orangeAccent,
       ),
       body: dinamico(),
       bottomNavigationBar: BottomNavigationBar(
@@ -479,63 +480,85 @@ class _App01State extends State<App01> {
     );
   }
 
-  Widget mostrar(){
+  Widget mostrar() {
+    Tareas.sort((a, b) {
+      return a.F_Entrega.compareTo(b.F_Entrega);
+    });
+    final DateTime fechaActual = DateTime.now();
+
     return ListView.builder(
-        itemCount: Tareas.length,
-        itemBuilder: (context, indice) {
-          var materia = Materias.firstWhere(
-                  (materia) => materia.IDMateria == Tareas[indice].IDMateria,
-              orElse: () => Materia(
-                  IDMateria: "",
-                  Nombre: "",
-                  Semestre: "",
-                  Docente: ""));
-          return ListTile(
+      itemCount: Tareas.length,
+      itemBuilder: (context, indice) {
+        var tarea = Tareas[indice];
+        var materia = Materias.firstWhere(
+              (materia) => materia.IDMateria == tarea.IDMateria,
+          orElse: () => Materia(
+            IDMateria: "",
+            Nombre: "",
+            Semestre: "",
+            Docente: "",
+          ),
+        );
+
+        bool esTareaPasada = DateTime.parse(tarea.F_Entrega).isBefore(fechaActual);
+
+        Color? backgroundColor = esTareaPasada ? Colors.redAccent : null;
+
+        return Card(
+          child: ListTile(
+            tileColor: backgroundColor,
             leading: CircleAvatar(
-              child: Text("${Tareas[indice].IDTarea}"),
+              child: Text("${tarea.IDTarea}"),
             ),
-            title: Text(
-                "${Tareas[indice].Descripcion}"),
-            subtitle: Text("Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}\nPara el: ${Tareas[indice].F_Entrega}"),
-            trailing: IconButton(onPressed: () {
-              showDialog(context: context, builder: (builder){
-                return AlertDialog(
-                  title: Text("Eiminar"),
-                  content: Text("¿Seguro que quieres borrar la tarea ´${Tareas[indice].Descripcion}?´"),
-                  actions: [
-                    OutlinedButton(onPressed: (){
-                      DB.eliminarTarea(Tareas[indice].IDTarea).then((value){
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Se ha borrado corretamente!")));
-                        actualizarListaTareas();
-                      });
-                      Navigator.pop(context);
-                    }, child: Text("Eliminar")),
-                    OutlinedButton(onPressed: (){
-                      Navigator.pop(context);
-                    }, child: Text("Cancelar"))
-                  ],
+            title: Text("${tarea.Descripcion}"),
+            subtitle: Text("Materia: ${materia != Materia(IDMateria: "", Nombre: "", Semestre: "", Docente: "") ? materia.Nombre : 'Materia Desconocida'}\nPara el: ${tarea.F_Entrega}"),
+            trailing: IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (builder) {
+                    return AlertDialog(
+                      title: Text("Eliminar"),
+                      content: Text("¿Seguro que quieres borrar la tarea ´${tarea.Descripcion}?´"),
+                      actions: [
+                        OutlinedButton(
+                          onPressed: () {
+                            DB.eliminarTarea(tarea.IDTarea).then((value) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Se ha borrado corretamente!")));
+                              actualizarListaTareas();
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text("Eliminar"),
+                        ),
+                        OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text("Cancelar"),
+                        ),
+                      ],
+                    );
+                  },
                 );
-              });
-            }, icon: Icon(Icons.delete)),
+              },
+              icon: Icon(Icons.delete),
+            ),
             onTap: () {
               setState(() {
-                TareaGlb = Tareas[indice];
+                TareaGlb = tarea;
                 _index = 2;
               });
-              var materia = Materias.firstWhere(
-                      (materia) => materia.IDMateria == TareaGlb.IDMateria,
-                  orElse: () => Materia(
-                      IDMateria: "",
-                      Nombre: "",
-                      Semestre: "",
-                      Docente: ""));
-              numTarea.text = "${TareaGlb.IDTarea}";
-              descripcion.text = TareaGlb.Descripcion;
-              fechaEntrega.text = TareaGlb.F_Entrega;
-              materiaId.text = TareaGlb.IDMateria;
+              numTarea.text = "${tarea.IDTarea}";
+              descripcion.text = tarea.Descripcion;
+              fechaEntrega.text = tarea.F_Entrega;
+              materiaId.text = tarea.IDMateria;
               materiaSeleccionada = "${materia.Nombre}";
             },
-          );
-        });
+          ),
+        );
+      },
+    );
   }
+
 }
